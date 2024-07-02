@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react"
 import { IdentityKitProvider } from "./types"
 import { Signer } from "@slide-computer/signer"
+import { SignerConfig } from "../../lib"
 
 const defaultState: IdentityKitProvider = {
   signers: [],
@@ -19,10 +20,12 @@ export const IdentityKitContext = createContext<IdentityKitProvider>(defaultStat
 
 export function useIdentityKit(): {
   selectedSigner?: Signer
+  selectSigner: (signerId?: string | undefined) => void | SignerConfig
 } {
-  const { selectedSigner } = useContext(IdentityKitContext)
+  const { selectedSigner, selectSigner } = useContext(IdentityKitContext)
 
   return {
     selectedSigner,
+    selectSigner,
   }
 }

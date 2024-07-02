@@ -1,14 +1,34 @@
-import { useContext } from "react"
+import { useContext, useEffect, useState } from "react"
 import { IdentityKitContext } from "./context"
 import clsx from "clsx"
+import { SignerClient } from "@slide-computer/signer-client"
 
-export function ConnectWalletButton() {
-  const { selectedSigner, toggleModal } = useContext(IdentityKitContext)
+export function ConnectWalletButton({ signerClient }: { signerClient?: SignerClient }) {
+  const { selectedSigner, toggleModal, selectSigner } = useContext(IdentityKitContext)
+  const [connectedAddress, setConnectedAddress] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (selectedSigner && signerClient) {
+      signerClient.login({
+        onSuccess: () => {
+          setConnectedAddress(signerClient?.getIdentity().getPrincipal().toText())
+        },
+      })
+    }
+  }, [selectedSigner, signerClient])
+
   return (
     <button
       type="button"
-      disabled={!!selectedSigner}
-      onClick={toggleModal}
+      onClick={() => {
+        if (connectedAddress) {
+          signerClient!.logout()
+          selectSigner(undefined)
+          setConnectedAddress(undefined)
+        } else {
+          toggleModal()
+        }
+      }}
       className={clsx(
         "text-black bg-transparent border-gray-900",
         "hover:text-white hover:bg-gray-900 hover:border-gray-900 hover:shadow-md",
@@ -19,7 +39,9 @@ export function ConnectWalletButton() {
         "h-12 px-[15px] rounded-xl border"
       )}
     >
-      {selectedSigner ? "Connected" : "Connect wallet"}
+      {connectedAddress
+        ? `Disconnect wallet ${connectedAddress.substring(0, 5)}...${connectedAddress.substring(connectedAddress.length - 5)}`
+        : "Connect wallet"}
     </button>
   )
 }
