@@ -2,10 +2,10 @@ import { useContext, useEffect } from "react"
 import { IdentityKitContext } from "./context"
 import * as Dialog from "@radix-ui/react-dialog"
 import clsx from "clsx"
-import { IdentityKitTheme } from "./constants"
 
-export const IdentityKitModal = (props: { theme: IdentityKitTheme }) => {
-  const { isModalOpen, selectedSigner, signers, selectSigner } = useContext(IdentityKitContext)
+export const IdentityKitModal = () => {
+  const { isModalOpen, selectedSigner, signers, selectSigner, theme } =
+    useContext(IdentityKitContext)
 
   useEffect(() => {
     setTimeout(() => {
@@ -17,14 +17,6 @@ export const IdentityKitModal = (props: { theme: IdentityKitTheme }) => {
       document.body.style.overflow = isModalOpen ? "hidden" : ""
     }, 0)
   }, [isModalOpen])
-
-  // theme inherits from system by default
-  const theme =
-    props.theme === IdentityKitTheme.SYSTEM
-      ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? IdentityKitTheme.DARK
-        : IdentityKitTheme.LIGHT
-      : props.theme
 
   return (
     <Dialog.Root open={true}>

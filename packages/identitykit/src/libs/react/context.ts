@@ -2,6 +2,7 @@ import { createContext, useContext } from "react"
 import { IdentityKitProvider } from "./types"
 import { Signer } from "@slide-computer/signer"
 import { SignerConfig } from "../../lib"
+import { IdentityKitTheme } from "./constants"
 
 const defaultState: IdentityKitProvider = {
   signers: [],
@@ -14,6 +15,9 @@ const defaultState: IdentityKitProvider = {
   selectSigner: () => {
     throw new Error("selectSigner not implemented")
   },
+  theme: IdentityKitTheme.SYSTEM,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  identityKit: {} as any,
 }
 
 export const IdentityKitContext = createContext<IdentityKitProvider>(defaultState)

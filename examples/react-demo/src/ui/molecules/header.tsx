@@ -1,27 +1,9 @@
 import { useTheme } from "next-themes"
 import { IconSvgMoon, IconSvgNFID, IconSvgNFIDWhite, IconSvgSun } from "../atoms/icons"
-import { ConnectWalletButton, useIdentityKit } from "@nfid/identitykit/react"
-import { SignerClient } from "@slide-computer/signer-client"
-import { useEffect, useState } from "react"
+import { ConnectWalletButton } from "@nfid/identitykit/react"
 
 export const Header = () => {
   const { theme, setTheme } = useTheme()
-  const { selectedSigner } = useIdentityKit()
-  const [signerClient, setSignerClient] = useState<SignerClient | undefined>(undefined)
-
-  useEffect(() => {
-    if (selectedSigner) {
-      const createSignerClient = async () => {
-        return await SignerClient.create({
-          signer: selectedSigner,
-          keyType: "Ed25519"
-        })
-      }
-      createSignerClient().then((signerClient) => {
-        setSignerClient(signerClient)
-      })
-    }
-  }, [selectedSigner])
 
   return (
     <div className="flex items-center justify-between h-[68px] mb-3">
@@ -44,7 +26,7 @@ export const Header = () => {
             onClick={() => setTheme("light")}
           />
         )}
-        <ConnectWalletButton signerClient={signerClient} />
+        <ConnectWalletButton />
       </div>
     </div>
   )

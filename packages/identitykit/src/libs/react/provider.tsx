@@ -1,35 +1,50 @@
-import React, { useState, useCallback, PropsWithChildren } from "react"
+import React, { useState, useCallback, PropsWithChildren, useEffect } from "react"
 import { SignerConfig } from "../../lib/types"
 import { IdentityKitContext } from "./context"
 import { IdentityKitModal } from "./modal"
 import { IdentityKitTheme } from "./constants"
 import { PostMessageTransport } from "@slide-computer/signer-web"
 import { Signer } from "@slide-computer/signer"
+import { openPopup } from "./utils"
+import { IdentityKit, IdentityKitSignerClient, IdentityKitSignerClientOptions } from "../../lib"
 
 interface IdentityKitProviderProps extends PropsWithChildren {
   signers: SignerConfig[]
   theme?: IdentityKitTheme
+  signerClientOptions?: Omit<IdentityKitSignerClientOptions, "signer">
 }
 
 globalThis.global = globalThis
-
-const openPopup = (url: string, windowName: string, width: number, height: number) => {
-  const y = window.top!.outerHeight / 2 + window.top!.screenY - height / 2
-  const x = window.top!.outerWidth / 2 + window.top!.screenX - width / 2
-  return window.open(
-    url,
-    windowName,
-    `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=${width}, height=${height}, top=${y}, left=${x}`
-  ) as Window
-}
 
 export const IdentityKitProvider: React.FC<IdentityKitProviderProps> = ({
   children,
   signers,
   theme = IdentityKitTheme.SYSTEM,
+  signerClientOptions = {},
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSigner, setSelectedSigner] = useState<Signer | undefined>(undefined)
+  const [identityKit, setIdentityKit] = useState<null | IdentityKit>(null)
+
+  const createIdentityKitSignerClient = useCallback(async () => {
+    if (selectedSigner)
+      return await IdentityKitSignerClient.create({
+        signer: selectedSigner,
+        keyType: "Ed25519",
+        ...signerClientOptions,
+      })
+    return null
+  }, [selectedSigner])
+
+  const createIdentityKit = useCallback(async () => {
+    const signerClient = await createIdentityKitSignerClient()
+    if (signerClient !== null) return new IdentityKit(signerClient)
+    return null
+  }, [createIdentityKitSignerClient])
+
+  useEffect(() => {
+    createIdentityKit().then(setIdentityKit)
+  }, [createIdentityKit])
 
   const toggleModal = useCallback(() => {
     setIsModalOpen((prev) => !prev)
@@ -54,6 +69,14 @@ export const IdentityKitProvider: React.FC<IdentityKitProviderProps> = ({
     [signers, selectedSigner, setIsModalOpen]
   )
 
+  // theme inherits from system by default
+  const ctxTheme =
+    theme === IdentityKitTheme.SYSTEM
+      ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? IdentityKitTheme.DARK
+        : IdentityKitTheme.LIGHT
+      : theme
+
   return (
     <IdentityKitContext.Provider
       value={{
@@ -62,9 +85,11 @@ export const IdentityKitProvider: React.FC<IdentityKitProviderProps> = ({
         isModalOpen,
         toggleModal,
         selectSigner,
+        theme: ctxTheme,
+        identityKit: identityKit!,
       }}
     >
-      <IdentityKitModal theme={theme} />
+      <IdentityKitModal />
       {children}
     </IdentityKitContext.Provider>
   )
