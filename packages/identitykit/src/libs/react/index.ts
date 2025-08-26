@@ -28,7 +28,7 @@ export {
   useAuth,
   useBalance,
   useSignerConfig,
-  useSigner
+  useSigner,
   useAgent,
   useAccounts,
   useIdentity,
